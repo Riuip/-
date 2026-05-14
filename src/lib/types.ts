@@ -1,0 +1,62 @@
+// Shared row types used across the app.
+// (Hand-written for now; replace with `supabase gen types` output later.)
+
+export type Profile = {
+  id: string;
+  username: string;
+  avatar_url: string | null;
+  bio: string | null;
+  created_at: string;
+};
+
+export type Community = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type Post = {
+  id: string;
+  community_id: string;
+  author_id: string | null;
+  title: string;
+  body: string | null;
+  url: string | null;
+  created_at: string;
+};
+
+export type Comment = {
+  id: string;
+  post_id: string;
+  parent_id: string | null;
+  author_id: string | null;
+  body: string;
+  created_at: string;
+};
+
+export type Vote = {
+  user_id: string;
+  post_id: string | null;
+  comment_id: string | null;
+  value: -1 | 1;
+  created_at: string;
+};
+
+// View rows
+export type PostWithScore = Post & {
+  community_slug: string | null;
+  community_name: string | null;
+  author_username: string | null;
+  author_avatar_url: string | null;
+  score: number;
+  comment_count: number;
+};
+
+export type CommentWithScore = Comment & {
+  author_username: string | null;
+  author_avatar_url: string | null;
+  score: number;
+};
