@@ -5,17 +5,21 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import MarkdownEditor from "@/components/MarkdownEditor";
 
-export default function SubmitForm({
-  communityId,
-  communitySlug,
+export default function EditPostForm({
+  postId,
+  initialTitle,
+  initialBody,
+  initialUrl,
 }: {
-  communityId: string;
-  communitySlug: string;
+  postId: string;
+  initialTitle: string;
+  initialBody: string;
+  initialUrl: string;
 }) {
   const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [url, setUrl] = useState("");
+  const [title, setTitle] = useState(initialTitle);
+  const [body, setBody] = useState(initialBody);
+  const [url, setUrl] = useState(initialUrl);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -25,32 +29,21 @@ export default function SubmitForm({
     setLoading(true);
 
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("posts")
-      .insert({
-        community_id: communityId,
-        author_id: user.id,
+      .update({
         title: title.trim(),
         body: body.trim() || null,
         url: url.trim() || null,
       })
-      .select("id")
-      .single();
+      .eq("id", postId);
 
     setLoading(false);
     if (error) {
       setError(error.message);
       return;
     }
-    router.push(`/post/${data.id}`);
+    router.push(`/post/${postId}`);
     router.refresh();
   }
 
@@ -84,7 +77,7 @@ export default function SubmitForm({
       <div className="flex justify-end gap-2">
         <button
           type="button"
-          onClick={() => router.push(`/c/${communitySlug}`)}
+          onClick={() => router.push(`/post/${postId}`)}
           className="text-sm text-gray-600 hover:text-gray-900 px-3 py-1.5"
         >
           取消
@@ -94,7 +87,7 @@ export default function SubmitForm({
           disabled={loading || !title.trim()}
           className="bg-brand hover:bg-brand-dark disabled:opacity-60 text-white text-sm font-medium px-4 py-1.5 rounded-full"
         >
-          {loading ? "发布中..." : "发布"}
+          {loading ? "保存中..." : "保存"}
         </button>
       </div>
     </form>

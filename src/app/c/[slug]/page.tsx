@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import PostCard from "@/components/PostCard";
 import SortTabs from "@/components/SortTabs";
@@ -8,6 +9,24 @@ import type { PostWithScore } from "@/lib/types";
 import { parseSort, sortPosts } from "@/lib/sort";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const supabase = createClient();
+  const { data: c } = await supabase
+    .from("communities")
+    .select("slug, name, description")
+    .eq("slug", params.slug)
+    .maybeSingle();
+  if (!c) return { title: "社区未找到" };
+  return {
+    title: `c/${c.slug}`,
+    description: c.description ?? `c/${c.slug} 社区`,
+  };
+}
 
 export default async function CommunityPage({
   params,

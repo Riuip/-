@@ -1,5 +1,6 @@
 "use client";
 
+// Note: client component, so static metadata is set on layout/title only.
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";

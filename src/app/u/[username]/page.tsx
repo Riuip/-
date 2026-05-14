@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +9,17 @@ import { renderMarkdown } from "@/lib/markdown";
 import type { PostWithScore, CommentWithScore } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { username: string };
+}): Promise<Metadata> {
+  return {
+    title: `u/${params.username} · 论坛`,
+    description: `用户 u/${params.username} 的主页`,
+  };
+}
 
 export default async function ProfilePage({
   params,
@@ -25,6 +37,8 @@ export default async function ProfilePage({
     .eq("username", params.username)
     .maybeSingle();
   if (!profile) notFound();
+
+  const isSelf = !!user && user.id === profile.id;
 
   const { data: rawPosts } = await supabase
     .from("posts_with_score")
@@ -76,28 +90,55 @@ export default async function ProfilePage({
 
   return (
     <div className="space-y-4">
-      <div className="card p-4">
-        <h1 className="text-xl font-semibold">u/{profile.username}</h1>
-        <div className="text-xs text-gray-500 mt-1">
-          注册于{" "}
-          {formatDistanceToNow(new Date(profile.created_at), {
-            addSuffix: true,
-            locale: zhCN,
-          })}
-          {" · "}
-          总积分 {totalScore}
-          {" · "}
-          {posts.length} 帖子 · {comments.length} 评论
-        </div>
-        {profile.bio && (
-          <p className="text-sm text-gray-700 mt-2">{profile.bio}</p>
+      <div className="card p-4 flex items-start gap-4">
+        {profile.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={profile.avatar_url}
+            alt=""
+            className="w-16 h-16 rounded-full object-cover border border-gray-200 shrink-0"
+          />
+        ) : (
+          <div className="w-16 h-16 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-lg text-gray-400 shrink-0">
+            {profile.username.charAt(0).toUpperCase()}
+          </div>
         )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <h1 className="text-xl font-semibold">u/{profile.username}</h1>
+            {isSelf && (
+              <Link
+                href="/settings"
+                className="text-sm border border-gray-300 hover:bg-gray-100 rounded-full px-3 py-1"
+              >
+                编辑资料
+              </Link>
+            )}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            注册于{" "}
+            {formatDistanceToNow(new Date(profile.created_at), {
+              addSuffix: true,
+              locale: zhCN,
+            })}
+            {" · "}总积分 {totalScore}
+            {" · "}
+            {posts.length} 帖子 · {comments.length} 评论
+          </div>
+          {profile.bio && (
+            <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap">
+              {profile.bio}
+            </p>
+          )}
+        </div>
       </div>
 
       <section>
         <h2 className="text-sm font-semibold mb-2">发的帖子</h2>
         {posts.length === 0 ? (
-          <div className="card p-4 text-sm text-gray-500">还没有发过帖子。</div>
+          <div className="card p-4 text-sm text-gray-500">
+            还没有发过帖子。
+          </div>
         ) : (
           <div className="space-y-3">
             {posts.map((p) => (

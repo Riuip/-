@@ -3,6 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "所有社区",
+};
+
 export default async function CommunityListPage() {
   const supabase = createClient();
   const {

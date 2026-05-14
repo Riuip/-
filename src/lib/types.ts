@@ -31,6 +31,7 @@ export type Post = {
   body: string | null;
   url: string | null;
   created_at: string;
+  updated_at: string | null;
 };
 
 export type Comment = {
@@ -40,6 +41,7 @@ export type Comment = {
   author_id: string | null;
   body: string;
   created_at: string;
+  updated_at: string | null;
 };
 
 export type Vote = {
@@ -68,3 +70,19 @@ export type CommentWithScore = Comment & {
 
 export type SortMode = "new" | "hot" | "top";
 export type FeedMode = "all" | "joined";
+
+export type NotificationKind = "reply_post" | "reply_comment";
+
+export type NotificationView = {
+  id: string;
+  user_id: string;
+  actor_id: string | null;
+  kind: NotificationKind;
+  post_id: string | null;
+  comment_id: string | null;
+  read_at: string | null;
+  created_at: string;
+  actor_username: string | null;
+  post_title: string | null;
+  comment_body: string | null;
+};

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { createClient } from "@/lib/supabase/server";
@@ -12,6 +13,26 @@ import { renderMarkdown } from "@/lib/markdown";
 import type { PostWithScore, CommentWithScore } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const supabase = createClient();
+  const { data: post } = await supabase
+    .from("posts_with_score")
+    .select("title, body, community_slug, author_username")
+    .eq("id", params.id)
+    .maybeSingle();
+  if (!post) return { title: "帖子未找到" };
+  const desc = (post.body ?? "").slice(0, 140) || `c/${post.community_slug} 的帖子`;
+  return {
+    title: `${post.title} · 论坛`,
+    description: desc,
+    openGraph: { title: post.title, description: desc, type: "article" },
+  };
+}
 
 export default async function PostPage({
   params,
@@ -109,6 +130,9 @@ export default async function PostPage({
             <time dateTime={post.created_at} title={created.toLocaleString()}>
               {formatDistanceToNow(created, { addSuffix: true, locale: zhCN })}
             </time>
+            {post.updated_at && post.updated_at !== post.created_at && (
+              <span className="italic">(已编辑)</span>
+            )}
           </div>
 
           <h1 className="text-xl font-semibold leading-snug">{post.title}</h1>
@@ -131,7 +155,13 @@ export default async function PostPage({
           )}
 
           {isOwner && (
-            <div className="mt-3 text-xs">
+            <div className="mt-3 flex items-center gap-3 text-xs">
+              <Link
+                href={`/post/${post.id}/edit`}
+                className="text-gray-500 hover:text-gray-800"
+              >
+                编辑
+              </Link>
               <DeletePostButton
                 postId={post.id}
                 redirectTo={

@@ -6,6 +6,7 @@ import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import VoteButtons from "./VoteButtons";
 import CommentForm from "./CommentForm";
+import CommentEditor from "./CommentEditor";
 import DeleteCommentButton from "./DeleteCommentButton";
 import type { CommentWithScore } from "@/lib/types";
 
@@ -82,6 +83,7 @@ function CommentNode({
   renderedBodies: Record<string, string>;
 }) {
   const [replying, setReplying] = useState(false);
+  const [editing, setEditing] = useState(false);
   const created = new Date(node.created_at);
   const isOwner = !!currentUserId && currentUserId === node.author_id;
   const html = renderedBodies[node.id] ?? "";
@@ -111,32 +113,52 @@ function CommentNode({
             <time dateTime={node.created_at} title={created.toLocaleString()}>
               {formatDistanceToNow(created, { addSuffix: true, locale: zhCN })}
             </time>
-          </div>
-
-          <div
-            className="prose-forum text-sm text-gray-800"
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{ __html: html }}
-          />
-
-          <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
-            {isLoggedIn && (
-              <button
-                onClick={() => setReplying((v) => !v)}
-                className="hover:text-gray-800"
-              >
-                {replying ? "取消" : "回复"}
-              </button>
+            {node.updated_at && node.updated_at !== node.created_at && (
+              <span className="ml-1 italic">(已编辑)</span>
             )}
-            {isOwner && <DeleteCommentButton commentId={node.id} />}
           </div>
+
+          {editing ? (
+            <CommentEditor
+              commentId={node.id}
+              initialBody={node.body}
+              onDone={() => setEditing(false)}
+            />
+          ) : (
+            <div
+              className="prose-forum text-sm text-gray-800"
+              // eslint-disable-next-line react/no-danger
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
+          )}
+
+          {!editing && (
+            <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
+              {isLoggedIn && (
+                <button
+                  onClick={() => setReplying((v) => !v)}
+                  className="hover:text-gray-800"
+                >
+                  {replying ? "取消" : "回复"}
+                </button>
+              )}
+              {isOwner && (
+                <button
+                  onClick={() => setEditing(true)}
+                  className="hover:text-gray-800"
+                >
+                  编辑
+                </button>
+              )}
+              {isOwner && <DeleteCommentButton commentId={node.id} />}
+            </div>
+          )}
 
           {replying && (
             <div className="mt-2">
               <CommentForm
                 postId={postId}
                 parentId={node.id}
-                autoFocus
                 onDone={() => setReplying(false)}
               />
             </div>
