@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "./SignOutButton";
+import SearchBar from "./SearchBar";
+import Seal from "./decor/Seal";
 
 export default async function Navbar() {
   const supabase = createClient();
@@ -29,38 +31,45 @@ export default async function Navbar() {
   }
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-      <div className="max-w-5xl mx-auto px-4 h-12 flex items-center gap-4">
-        <Link
-          href="/"
-          className="text-brand font-bold text-lg tracking-tight"
-        >
-          论坛
+    <header className="bg-white/85 backdrop-blur border-b border-paper-dark sticky top-0 z-20">
+      <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2 shrink-0">
+          <Seal size={32} text="论坛" />
+          <span className="font-serif text-lg font-semibold tracking-wide hidden sm:inline">
+            论坛
+          </span>
         </Link>
 
-        <nav className="flex-1 flex items-center gap-4 text-sm">
-          <Link href="/" className="text-gray-700 hover:text-gray-900">
+        {/* Primary nav */}
+        <nav className="flex items-center gap-3 text-sm shrink-0">
+          <Link href="/" className="text-ink-soft hover:text-brand">
             首页
           </Link>
-          <Link href="/c" className="text-gray-700 hover:text-gray-900">
+          <Link href="/c" className="text-ink-soft hover:text-brand">
             社区
           </Link>
           {user && (
             <Link
               href="/c/new"
-              className="text-gray-700 hover:text-gray-900"
+              className="text-ink-soft hover:text-brand hidden md:inline"
             >
               创建社区
             </Link>
           )}
         </nav>
 
+        {/* Search */}
+        <div className="flex-1 max-w-md mx-auto">
+          <SearchBar />
+        </div>
+
         {user ? (
-          <div className="flex items-center gap-3 text-sm">
+          <div className="flex items-center gap-3 text-sm shrink-0">
             <Link
               href="/notifications"
               aria-label="通知"
-              className="relative text-gray-600 hover:text-gray-900 p-1"
+              className="relative text-ink-mute hover:text-brand p-1"
             >
               <svg
                 width="20"
@@ -84,24 +93,28 @@ export default async function Navbar() {
             {username && (
               <Link
                 href={`/u/${username}`}
-                className="flex items-center gap-1.5 text-gray-700 hover:underline"
+                className="flex items-center gap-1.5 text-ink-soft hover:text-brand"
               >
                 {avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={avatarUrl}
                     alt=""
-                    className="w-6 h-6 rounded-full object-cover"
+                    className="w-7 h-7 rounded-full object-cover border border-paper-dark"
                   />
-                ) : null}
-                <span>
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-paper-dark flex items-center justify-center text-xs font-medium text-ink-mute">
+                    {username.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span className="hidden sm:inline">
                   u/<span className="font-medium">{username}</span>
                 </span>
               </Link>
             )}
             <Link
               href="/settings"
-              className="text-gray-600 hover:text-gray-900"
+              className="text-ink-mute hover:text-brand hidden sm:inline"
             >
               设置
             </Link>
@@ -110,7 +123,7 @@ export default async function Navbar() {
         ) : (
           <Link
             href="/login"
-            className="bg-brand hover:bg-brand-dark text-white text-sm font-medium px-3 py-1.5 rounded-full"
+            className="bg-brand hover:bg-brand-dark text-white text-sm font-medium px-4 py-1.5 rounded-full shrink-0"
           >
             登录
           </Link>

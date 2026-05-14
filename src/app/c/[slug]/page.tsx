@@ -83,45 +83,60 @@ export default async function CommunityPage({
 
   return (
     <div className="space-y-4">
-      <div className="card p-4 flex items-center justify-between gap-4 flex-wrap">
-        <div className="min-w-0">
-          <h1 className="text-xl font-semibold">c/{community.slug}</h1>
-          <div className="text-xs text-gray-500 mt-1">
-            {community.member_count} 成员 · {community.post_count} 帖子
+      {/* Banner */}
+      <div className="rounded-lg overflow-hidden border border-paper-dark">
+        <div className="h-20 bg-gradient-to-r from-brand/15 via-gold/15 to-brand/10 relative">
+          <div className="absolute inset-0 bg-paper-grid bg-paper-grid opacity-40" />
+        </div>
+        <div className="bg-white p-4 flex items-center justify-between gap-4 flex-wrap relative">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-12 h-12 rounded-full bg-brand text-white flex items-center justify-center font-serif text-lg font-semibold border-4 border-white -mt-8 shadow-ink shrink-0">
+              {community.slug.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xl font-semibold font-serif">
+                c/{community.slug}
+              </h1>
+              <div className="text-xs text-ink-mute mt-0.5">
+                {community.member_count} 成员 · {community.post_count} 帖子
+              </div>
+            </div>
           </div>
-          {community.description && (
-            <p className="text-sm text-gray-600 mt-2">{community.description}</p>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            <JoinCommunityButton
+              communityId={community.id}
+              isLoggedIn={!!user}
+              initialJoined={isJoined}
+            />
+            {user ? (
+              <Link
+                href={`/c/${community.slug}/submit`}
+                className="border border-paper-dark hover:bg-paper-dark text-ink-soft text-sm font-medium px-4 py-1.5 rounded-full whitespace-nowrap"
+              >
+                发帖
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="text-sm text-brand hover:underline whitespace-nowrap"
+              >
+                登录后发帖
+              </Link>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <JoinCommunityButton
-            communityId={community.id}
-            isLoggedIn={!!user}
-            initialJoined={isJoined}
-          />
-          {user ? (
-            <Link
-              href={`/c/${community.slug}/submit`}
-              className="border border-gray-300 hover:bg-gray-100 text-gray-800 text-sm font-medium px-4 py-1.5 rounded-full whitespace-nowrap"
-            >
-              发帖
-            </Link>
-          ) : (
-            <Link
-              href="/login"
-              className="text-sm text-brand hover:underline whitespace-nowrap"
-            >
-              登录后发帖
-            </Link>
-          )}
-        </div>
+        {community.description && (
+          <div className="bg-white border-t border-paper-dark px-4 py-3 text-sm text-ink-soft">
+            {community.description}
+          </div>
+        )}
       </div>
 
       <SortTabs current={sort} basePath={`/c/${community.slug}`} />
 
       <div className="space-y-3">
         {posts.length === 0 && (
-          <div className="card p-6 text-sm text-gray-600">
+          <div className="card p-6 text-sm text-ink-mute">
             c/{community.slug} 还没有帖子。
           </div>
         )}

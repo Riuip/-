@@ -3,6 +3,7 @@ import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import VoteButtons from "./VoteButtons";
 import DeletePostButton from "./DeletePostButton";
+import ReportButton from "./ReportButton";
 import type { PostWithScore } from "@/lib/types";
 
 type Props = {
@@ -23,8 +24,8 @@ export default function PostCard({
   const created = new Date(post.created_at);
   const isOwner = !!currentUserId && currentUserId === post.author_id;
   return (
-    <article className="card flex hover:border-gray-400 transition-colors">
-      <div className="bg-gray-50 rounded-l-md py-2">
+    <article className="card flex hover:border-brand/60 transition-colors">
+      <div className="bg-paper-dark/40 rounded-l-lg py-2">
         <VoteButtons
           postId={post.id}
           initialScore={post.score}
@@ -34,11 +35,11 @@ export default function PostCard({
       </div>
 
       <div className="flex-1 p-3 min-w-0">
-        <div className="text-xs text-gray-500 mb-1 flex items-center gap-1 flex-wrap">
+        <div className="text-xs text-ink-mute mb-1 flex items-center gap-1 flex-wrap">
           {post.community_slug && (
             <Link
               href={`/c/${post.community_slug}`}
-              className="font-medium text-gray-800 hover:underline"
+              className="font-medium text-ink-soft hover:underline"
             >
               c/{post.community_slug}
             </Link>
@@ -79,16 +80,22 @@ export default function PostCard({
         )}
 
         {post.body && (
-          <p className="mt-2 text-sm text-gray-700 line-clamp-3 whitespace-pre-wrap">
+          <p className="mt-2 text-sm text-ink-soft line-clamp-3 whitespace-pre-wrap">
             {post.body}
           </p>
         )}
 
-        <div className="mt-2 text-xs text-gray-500 flex items-center gap-3">
+        <div className="mt-2 text-xs text-ink-mute flex items-center gap-3">
           <Link href={`/post/${post.id}`} className="hover:underline">
             {post.comment_count} 条评论
           </Link>
-          {isOwner && <DeletePostButton postId={post.id} />}
+          {isOwner ? (
+            <DeletePostButton postId={post.id} />
+          ) : (
+            isLoggedIn && (
+              <ReportButton postId={post.id} isLoggedIn={isLoggedIn} />
+            )
+          )}
         </div>
       </div>
     </article>

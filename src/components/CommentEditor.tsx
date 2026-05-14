@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import MarkdownEditor from "./MarkdownEditor";
 
@@ -12,9 +11,9 @@ export default function CommentEditor({
 }: {
   commentId: string;
   initialBody: string;
-  onDone: () => void;
+  /** Called when the form is dismissed. If `newBody` is given, the edit succeeded. */
+  onDone: (newBody?: string) => void;
 }) {
-  const router = useRouter();
   const [body, setBody] = useState(initialBody);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,8 +35,7 @@ export default function CommentEditor({
       setError(error.message);
       return;
     }
-    onDone();
-    router.refresh();
+    onDone(body.trim());
   }
 
   return (
@@ -52,8 +50,8 @@ export default function CommentEditor({
       <div className="flex justify-end gap-2">
         <button
           type="button"
-          onClick={onDone}
-          className="text-xs text-gray-600 hover:text-gray-900 px-3 py-1"
+          onClick={() => onDone()}
+          className="text-xs text-ink-mute hover:text-ink px-3 py-1"
         >
           取消
         </button>

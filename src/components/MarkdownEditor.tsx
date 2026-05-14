@@ -63,17 +63,17 @@ export default function MarkdownEditor({
   }
 
   return (
-    <div className="border border-gray-300 rounded overflow-hidden bg-white">
+    <div className="border border-paper-dark rounded-lg overflow-hidden bg-white">
       {/* Toolbar */}
-      <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-2 py-1 text-xs">
+      <div className="flex items-center justify-between border-b border-paper-dark bg-paper-dark/30 px-2 py-1 text-xs">
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => setTab("write")}
             className={`px-2 py-1 rounded ${
               tab === "write"
-                ? "bg-white border border-gray-300"
-                : "text-gray-600 hover:bg-gray-100"
+                ? "bg-white border border-paper-dark text-ink"
+                : "text-ink-mute hover:bg-white/60"
             }`}
           >
             编辑
@@ -83,8 +83,8 @@ export default function MarkdownEditor({
             onClick={() => setTab("preview")}
             className={`px-2 py-1 rounded ${
               tab === "preview"
-                ? "bg-white border border-gray-300"
-                : "text-gray-600 hover:bg-gray-100"
+                ? "bg-white border border-paper-dark text-ink"
+                : "text-ink-mute hover:bg-white/60"
             }`}
           >
             预览
@@ -119,12 +119,12 @@ export default function MarkdownEditor({
             />
             {enableImageUpload && (
               <>
-                <span className="text-gray-300 mx-1">|</span>
+                <span className="text-paper-dark mx-1">|</span>
                 <button
                   type="button"
                   disabled={uploading || disabled}
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-2 py-1 rounded text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                  className="px-2 py-1 rounded text-ink-soft hover:bg-white/60 disabled:opacity-50"
                 >
                   {uploading ? "上传中..." : "图片"}
                 </button>
@@ -167,18 +167,18 @@ export default function MarkdownEditor({
               }
             }
           }}
-          className="w-full px-3 py-2 text-sm font-mono outline-none resize-y"
+          className="w-full px-3 py-2 text-sm font-mono outline-none resize-y bg-white"
         />
       ) : (
         <div className="px-3 py-2 min-h-[8rem]">
           {value.trim() ? (
             <div
-              className="prose-forum text-sm text-gray-800"
+              className="prose-forum text-sm text-ink"
               // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{ __html: renderMarkdown(value) }}
             />
           ) : (
-            <p className="text-sm text-gray-400 italic">这里没有内容。</p>
+            <p className="text-sm text-ink-mute italic">这里没有内容。</p>
           )}
         </div>
       )}
@@ -203,7 +203,7 @@ function ToolbarButton({
     <button
       type="button"
       onClick={onClick}
-      className="px-2 py-1 rounded text-gray-700 hover:bg-gray-100"
+      className="px-2 py-1 rounded text-ink-soft hover:bg-white/60"
     >
       {label}
     </button>

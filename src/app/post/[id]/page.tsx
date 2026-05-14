@@ -8,6 +8,7 @@ import VoteButtons from "@/components/VoteButtons";
 import CommentThread from "@/components/CommentThread";
 import CommentForm from "@/components/CommentForm";
 import DeletePostButton from "@/components/DeletePostButton";
+import ReportButton from "@/components/ReportButton";
 import Markdown from "@/components/Markdown";
 import { renderMarkdown } from "@/lib/markdown";
 import type { PostWithScore, CommentWithScore } from "@/lib/types";
@@ -26,9 +27,10 @@ export async function generateMetadata({
     .eq("id", params.id)
     .maybeSingle();
   if (!post) return { title: "帖子未找到" };
-  const desc = (post.body ?? "").slice(0, 140) || `c/${post.community_slug} 的帖子`;
+  const desc =
+    (post.body ?? "").slice(0, 140) || `c/${post.community_slug} 的帖子`;
   return {
-    title: `${post.title} · 论坛`,
+    title: `${post.title}`,
     description: desc,
     openGraph: { title: post.title, description: desc, type: "article" },
   };
@@ -58,13 +60,11 @@ export default async function PostPage({
     .order("created_at", { ascending: true });
   const comments = (rawComments ?? []) as CommentWithScore[];
 
-  // Pre-render comment markdown server-side (sanitized).
   const renderedBodies: Record<string, string> = {};
   for (const c of comments) {
     renderedBodies[c.id] = renderMarkdown(c.body);
   }
 
-  // User vote map for the post + each comment.
   let postUserVote: -1 | 0 | 1 = 0;
   const commentUserVotes: Record<string, -1 | 1> = {};
   if (user) {
@@ -96,7 +96,7 @@ export default async function PostPage({
   return (
     <div className="space-y-4">
       <article className="card flex">
-        <div className="bg-gray-50 rounded-l-md py-3">
+        <div className="bg-paper-dark/40 rounded-l-lg py-3">
           <VoteButtons
             postId={post.id}
             initialScore={post.score}
@@ -105,11 +105,11 @@ export default async function PostPage({
           />
         </div>
         <div className="flex-1 p-4 min-w-0">
-          <div className="text-xs text-gray-500 mb-2 flex items-center gap-1 flex-wrap">
+          <div className="text-xs text-ink-mute mb-2 flex items-center gap-1 flex-wrap">
             {post.community_slug && (
               <Link
                 href={`/c/${post.community_slug}`}
-                className="font-medium text-gray-800 hover:underline"
+                className="font-medium text-ink-soft hover:underline"
               >
                 c/{post.community_slug}
               </Link>
@@ -135,7 +135,9 @@ export default async function PostPage({
             )}
           </div>
 
-          <h1 className="text-xl font-semibold leading-snug">{post.title}</h1>
+          <h1 className="text-xl font-semibold leading-snug font-serif">
+            {post.title}
+          </h1>
 
           {post.url && (
             <a
@@ -154,34 +156,41 @@ export default async function PostPage({
             </div>
           )}
 
-          {isOwner && (
-            <div className="mt-3 flex items-center gap-3 text-xs">
-              <Link
-                href={`/post/${post.id}/edit`}
-                className="text-gray-500 hover:text-gray-800"
-              >
-                编辑
-              </Link>
-              <DeletePostButton
-                postId={post.id}
-                redirectTo={
-                  post.community_slug ? `/c/${post.community_slug}` : "/"
-                }
-              />
-            </div>
-          )}
+          <div className="mt-3 flex items-center gap-3 text-xs">
+            {isOwner ? (
+              <>
+                <Link
+                  href={`/post/${post.id}/edit`}
+                  className="text-ink-mute hover:text-ink"
+                >
+                  编辑
+                </Link>
+                <DeletePostButton
+                  postId={post.id}
+                  redirectTo={
+                    post.community_slug ? `/c/${post.community_slug}` : "/"
+                  }
+                />
+              </>
+            ) : (
+              user && (
+                <ReportButton postId={post.id} isLoggedIn={!!user} />
+              )
+            )}
+          </div>
         </div>
       </article>
 
       <section className="card p-4">
-        <h2 className="text-sm font-semibold mb-3">
+        <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <span className="seal">论</span>
           {post.comment_count} 条评论
         </h2>
 
         {user ? (
           <CommentForm postId={post.id} />
         ) : (
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-ink-mute mb-4">
             <Link href="/login" className="text-brand hover:underline">
               登录
             </Link>{" "}

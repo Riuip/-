@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import PostCard from "@/components/PostCard";
 import SortTabs from "@/components/SortTabs";
+import RealtimePostsBadge from "@/components/RealtimePostsBadge";
 import type { PostWithScore, FeedMode } from "@/lib/types";
 import { parseSort, sortPosts } from "@/lib/sort";
 
@@ -30,7 +31,6 @@ export default async function HomePage({
     joinedCommunityIds = (memberships ?? []).map((m) => m.community_id);
   }
 
-  // Fetch posts.
   let postsQuery = supabase
     .from("posts_with_score")
     .select("*")
@@ -66,25 +66,43 @@ export default async function HomePage({
     .order("created_at", { ascending: false })
     .limit(8);
 
+  // Sidebar: top contributors (by their cumulative post score).
+  const { data: topContributors } = await supabase
+    .from("profiles")
+    .select("username, avatar_url")
+    .order("created_at", { ascending: false })
+    .limit(5);
+
   const showJoinedEmpty =
     feed === "joined" && user && joinedCommunityIds.length === 0;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-5">
       <div className="space-y-3">
+        {/* 中文标语 */}
+        <div className="card p-4 bg-gradient-to-br from-brand/5 via-paper to-gold/5 border-brand/20">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h1 className="font-serif text-xl font-semibold tracking-wide">
+                以文会友 · 雅集论道
+              </h1>
+              <p className="text-xs text-ink-mute mt-1 font-serif tracking-wide">
+                海纳百川,有容乃大
+              </p>
+            </div>
+            <span className="seal text-xs">坛</span>
+          </div>
+        </div>
+
         {/* Feed switch */}
         {user && (
           <div className="card px-4 py-2 flex items-center gap-2 text-sm">
             <Link
-              href={
-                searchParams.sort
-                  ? `/?sort=${searchParams.sort}`
-                  : "/"
-              }
+              href={searchParams.sort ? `/?sort=${searchParams.sort}` : "/"}
               className={`px-3 py-1 rounded-full ${
                 feed === "all"
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-ink text-white"
+                  : "text-ink-soft hover:bg-paper-dark"
               }`}
             >
               全部
@@ -97,8 +115,8 @@ export default async function HomePage({
               }
               className={`px-3 py-1 rounded-full ${
                 feed === "joined"
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-ink text-white"
+                  : "text-ink-soft hover:bg-paper-dark"
               }`}
             >
               已加入
@@ -112,6 +130,15 @@ export default async function HomePage({
           extraQuery={feed === "joined" ? { feed: "joined" } : undefined}
         />
 
+        {/* Realtime new-post toast */}
+        <div className="flex justify-center">
+          <RealtimePostsBadge
+            scopedCommunityIds={
+              feed === "joined" ? joinedCommunityIds : undefined
+            }
+          />
+        </div>
+
         {error && (
           <div className="card p-4 text-sm text-red-600">
             加载失败: {error.message}
@@ -119,7 +146,7 @@ export default async function HomePage({
         )}
 
         {showJoinedEmpty && (
-          <div className="card p-6 text-sm text-gray-600">
+          <div className="card p-6 text-sm text-ink-mute">
             你还没加入任何社区。先去{" "}
             <Link href="/c" className="text-brand hover:underline">
               社区列表
@@ -129,7 +156,7 @@ export default async function HomePage({
         )}
 
         {!showJoinedEmpty && posts.length === 0 && (
-          <div className="card p-6 text-sm text-gray-600">
+          <div className="card p-6 text-sm text-ink-mute">
             暂无帖子。
             {user ? (
               <>
@@ -163,31 +190,40 @@ export default async function HomePage({
       </div>
 
       <aside className="space-y-3">
+        {/* 热门社区 */}
         <div className="card p-4">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="font-semibold text-sm">热门社区</h2>
-            <Link href="/c" className="text-xs text-gray-500 hover:underline">
+            <h2 className="font-semibold text-sm flex items-center gap-1.5">
+              <span className="seal">坛</span>热门社区
+            </h2>
+            <Link href="/c" className="text-xs text-ink-mute hover:text-brand">
               全部
             </Link>
           </div>
           {communities && communities.length > 0 ? (
-            <ul className="space-y-1 text-sm">
-              {communities.map((c) => (
-                <li key={c.slug} className="flex items-center justify-between">
+            <ul className="space-y-1.5 text-sm">
+              {communities.map((c, i) => (
+                <li
+                  key={c.slug}
+                  className="flex items-center justify-between gap-2"
+                >
                   <Link
                     href={`/c/${c.slug}`}
-                    className="text-gray-800 hover:underline truncate"
+                    className="text-ink-soft hover:text-brand truncate flex items-center gap-2"
                   >
+                    <span className="text-ink-mute font-mono text-xs w-4 text-right">
+                      {i + 1}
+                    </span>
                     c/{c.slug}
                   </Link>
-                  <span className="text-xs text-gray-500 shrink-0 ml-2">
-                    {c.member_count} 成员
+                  <span className="text-xs text-ink-mute shrink-0">
+                    {c.member_count}
                   </span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-gray-500">还没有社区。</p>
+            <p className="text-sm text-ink-mute">还没有社区。</p>
           )}
           {user && (
             <Link
@@ -199,9 +235,47 @@ export default async function HomePage({
           )}
         </div>
 
-        <div className="card p-4 text-xs text-gray-500 leading-relaxed">
-          这是一个 Reddit 风格的开源中文论坛 demo,基于 Next.js + Supabase 构建。
-          支持 Markdown、加入社区、热门排序等功能。
+        {/* 新成员 */}
+        {topContributors && topContributors.length > 0 && (
+          <div className="card p-4">
+            <h2 className="font-semibold text-sm mb-2 flex items-center gap-1.5">
+              <span className="seal">人</span>新成员
+            </h2>
+            <ul className="space-y-1.5 text-sm">
+              {topContributors.map((c) => (
+                <li key={c.username}>
+                  <Link
+                    href={`/u/${c.username}`}
+                    className="flex items-center gap-2 hover:text-brand"
+                  >
+                    {c.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={c.avatar_url}
+                        alt=""
+                        className="w-6 h-6 rounded-full object-cover border border-paper-dark"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-paper-dark text-ink-mute flex items-center justify-center text-[10px]">
+                        {c.username.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-ink-soft truncate">u/{c.username}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* 关于 */}
+        <div className="card p-4 text-xs text-ink-mute leading-relaxed">
+          <div className="font-serif text-sm font-semibold text-ink-soft mb-2">
+            关于本站
+          </div>
+          一个具有中华文化感的开源中文论坛。
+          支持 Markdown、图片上传、实时评论、热门排序、举报、通知等。
+          基于 Next.js + Supabase。
         </div>
       </aside>
     </div>
