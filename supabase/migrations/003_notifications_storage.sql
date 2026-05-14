@@ -4,10 +4,44 @@
 -- =====================================================================
 
 -- ---------- updated_at on posts and comments ----------
+-- We must DROP dependent views first, because adding columns to a table
+-- conflicts with views that select `*` from it (Postgres locks the view
+-- column order/names).  CASCADE drops the views; we recreate them below.
+drop view if exists public.posts_with_score    cascade;
+drop view if exists public.comments_with_score cascade;
+
 alter table public.posts    add column if not exists updated_at timestamptz;
 alter table public.comments add column if not exists updated_at timestamptz;
 
--- Auto-bump updated_at when body changes.
+-- Recreate the score views (they will pick up the new updated_at columns).
+create or replace view public.posts_with_score as
+select
+  p.*,
+  c.slug as community_slug,
+  c.name as community_name,
+  pr.username as author_username,
+  pr.avatar_url as author_avatar_url,
+  coalesce(sum(v.value), 0)::int as score,
+  count(distinct cm.id)::int      as comment_count
+from public.posts p
+left join public.communities c on c.id = p.community_id
+left join public.profiles pr   on pr.id = p.author_id
+left join public.votes v       on v.post_id = p.id
+left join public.comments cm   on cm.post_id = p.id
+group by p.id, c.slug, c.name, pr.username, pr.avatar_url;
+
+create or replace view public.comments_with_score as
+select
+  c.*,
+  pr.username as author_username,
+  pr.avatar_url as author_avatar_url,
+  coalesce(sum(v.value), 0)::int as score
+from public.comments c
+left join public.profiles pr on pr.id = c.author_id
+left join public.votes v    on v.comment_id = c.id
+group by c.id, pr.username, pr.avatar_url;
+
+-- Auto-bump updated_at when body/title/url changes.
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
@@ -73,8 +107,8 @@ create policy "users can delete their own notifications"
   on public.notifications for delete using (auth.uid() = user_id);
 
 -- Auto-create a notification when someone replies.
--- Uses SECURITY DEFINER so the trigger can insert on behalf of the recipient
--- without bumping into RLS.
+-- SECURITY DEFINER lets the trigger insert on behalf of the recipient
+-- without tripping over RLS.
 create or replace function public.notify_on_comment()
 returns trigger
 language plpgsql
@@ -82,20 +116,14 @@ security definer set search_path = public
 as $$
 declare
   recipient uuid;
-  kind text;
+  k text;
 begin
   if new.parent_id is not null then
-    -- Reply to a comment.
-    select author_id into recipient
-      from public.comments
-      where id = new.parent_id;
-    kind := 'reply_comment';
+    select author_id into recipient from public.comments where id = new.parent_id;
+    k := 'reply_comment';
   else
-    -- Top-level comment on a post.
-    select author_id into recipient
-      from public.posts
-      where id = new.post_id;
-    kind := 'reply_post';
+    select author_id into recipient from public.posts    where id = new.post_id;
+    k := 'reply_post';
   end if;
 
   if recipient is null or recipient = new.author_id then
@@ -103,7 +131,7 @@ begin
   end if;
 
   insert into public.notifications (user_id, actor_id, kind, post_id, comment_id)
-  values (recipient, new.author_id, kind, new.post_id, new.id);
+  values (recipient, new.author_id, k, new.post_id, new.id);
 
   return new;
 end;
