@@ -1,150 +1,143 @@
 # Forum
 
-A Reddit-style community forum built with **Next.js 14** (App Router) and
-**Supabase** (Postgres + Auth). Zero servers to manage; deploy the frontend to
-Vercel and let Supabase host the database, auth, and APIs.
+一个 **Reddit 风格**的社区论坛，使用 **Next.js 14**（App Router）+ **Supabase**（Postgres + Auth）构建。无需自建服务器；前端部署到 Vercel，数据库和认证交给 Supabase 托管。
 
-## Features
+## 功能
 
-- Email + password auth (Supabase Auth)
-- Communities (like subreddits): `c/<slug>`
-- Text or link posts
-- Tree-shaped comments with replies
-- Up / down votes on posts and comments
-- Score and comment-count via Postgres views
-- Row Level Security: anyone can read, only authors can write
+- 邮箱 + 密码 注册/登录（Supabase Auth）
+- 社区（类似 subreddit）：`c/<slug>`
+- 文字帖 / 链接帖
+- 树状嵌套评论（支持回复）
+- 帖子和评论的 赞/踩 投票
+- 通过 Postgres 视图自动聚合分数和评论数
+- 行级安全策略（RLS）：所有人可读，仅作者可写
 
-## Tech stack
+## 技术栈
 
-| Layer        | Tool                                          |
-|--------------|-----------------------------------------------|
-| Framework    | Next.js 14 (App Router) + TypeScript          |
-| Styling      | Tailwind CSS                                  |
-| Backend / DB | Supabase (Postgres, Auth, RLS)                |
-| Hosting      | Vercel (frontend) + Supabase (backend)        |
+| 层级 | 技术 |
+|------|------|
+| 前端框架 | Next.js 14 (App Router) + TypeScript |
+| 样式 | Tailwind CSS |
+| 后端 / 数据库 | Supabase (Postgres, Auth, RLS) |
+| 部署 | Vercel（前端）+ Supabase（后端） |
 
-## Setup
+## 快速开始
 
-### 1. Create a Supabase project
+### 1. 创建 Supabase 项目
 
-1. Sign up at [supabase.com](https://supabase.com) and create a new project.
-2. Open **SQL Editor -> New query**, paste the contents of
-   [`supabase/schema.sql`](./supabase/schema.sql) and run it.
-3. Open **Project Settings -> API** and copy:
-   - `Project URL`
-   - `anon` public key
-4. (Optional, dev convenience) **Authentication -> Providers -> Email** ->
-   disable *Confirm email* so you can sign up without verifying your inbox.
+1. 到 [supabase.com](https://supabase.com) 注册并创建一个新项目。
+2. 打开 **SQL Editor → New query**，把 [`supabase/schema.sql`](./supabase/schema.sql) 的内容粘贴进去并运行。
+3. 打开 **Project Settings → API**，复制：
+   - `Project URL`（项目地址）
+   - `anon` public key（匿名公钥）
+4. （可选，方便本地调试）在 **Authentication → Providers → Email** 里 **关闭「Confirm email」**，这样注册后不用验证邮箱就能直接登录。
 
-### 2. Configure environment variables
+### 2. 配置环境变量
 
 ```bash
 cp .env.local.example .env.local
 ```
 
-Fill in `.env.local`:
+在 `.env.local` 中填入：
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://<your-project-ref>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<your anon key>
+NEXT_PUBLIC_SUPABASE_URL=https://<你的项目ID>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<你的 anon key>
 ```
 
-### 3. Install + run
+### 3. 安装 + 启动
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open http://localhost:3000
+打开 http://localhost:3000
 
-### 4. Try it out
+### 4. 试玩
 
-1. Click **Log In** in the top right and create an account.
-2. Visit any community URL, e.g. `/c/general` - it's auto-created on first
-   visit by a logged-in user.
-3. Click **Create Post**, then upvote / comment to your heart's content.
+1. 点击右上角 **Log In** 注册一个账号。
+2. 访问任意社区链接，如 `/c/general` — 登录用户首次访问时会自动创建社区。
+3. 点击 **Create Post** 发帖，然后试试点赞和评论。
 
-## Deploy
+## 部署到生产
 
-### Frontend on Vercel
+### 前端 → Vercel
 
-1. Push this repo to GitHub.
-2. Import the repo at [vercel.com/new](https://vercel.com/new).
-3. Add the same two env vars (`NEXT_PUBLIC_SUPABASE_URL`,
-   `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
-4. Deploy.
+1. 将此仓库推送到 GitHub。
+2. 在 [vercel.com/new](https://vercel.com/new) 导入该仓库。
+3. 添加两个环境变量：`NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`。
+4. 点击 Deploy。
 
-### Supabase Auth redirect URLs
+### Supabase Auth 回调地址
 
-After deploying, go to **Supabase -> Authentication -> URL Configuration** and
-add your production URL (e.g. `https://your-app.vercel.app`) to:
+部署后，到 **Supabase → Authentication → URL Configuration** 添加你的生产域名：
 
-- *Site URL*
-- *Redirect URLs*: add `https://your-app.vercel.app/auth/callback`
+- *Site URL*：`https://your-app.vercel.app`
+- *Redirect URLs*：`https://your-app.vercel.app/auth/callback`
 
-## Project structure
+## 项目结构
 
 ```
 .
 ├── supabase/
-│   └── schema.sql              # Tables, views, RLS, triggers
+│   └── schema.sql              # 建表、视图、RLS、触发器
 └── src/
-    ├── middleware.ts
+    ├── middleware.ts            # Session 自动刷新
     ├── lib/
     │   ├── supabase/
-    │   │   ├── client.ts       # Browser client
-    │   │   ├── server.ts       # Server client
-    │   │   └── middleware.ts   # Session refresh
-    │   └── types.ts
+    │   │   ├── client.ts       # 浏览器端 client
+    │   │   ├── server.ts       # 服务端 client
+    │   │   └── middleware.ts   # Session 中间件
+    │   └── types.ts            # 数据库类型
     ├── components/
-    │   ├── Navbar.tsx
-    │   ├── SignOutButton.tsx
-    │   ├── PostCard.tsx
-    │   ├── VoteButtons.tsx
-    │   ├── CommentForm.tsx
-    │   └── CommentThread.tsx
+    │   ├── Navbar.tsx           # 顶部导航栏
+    │   ├── SignOutButton.tsx    # 退出按钮
+    │   ├── PostCard.tsx         # 帖子卡片
+    │   ├── VoteButtons.tsx      # 投票按钮
+    │   ├── CommentForm.tsx      # 评论输入框
+    │   └── CommentThread.tsx    # 树状评论渲染
     └── app/
         ├── layout.tsx
-        ├── page.tsx                  # Home feed
+        ├── page.tsx                  # 首页 — 全站最新
         ├── globals.css
-        ├── auth/callback/route.ts
-        ├── login/page.tsx
+        ├── auth/callback/route.ts    # 邮件验证/OAuth 回调
+        ├── login/page.tsx            # 登录/注册页
         ├── c/[slug]/
-        │   ├── page.tsx              # Community
+        │   ├── page.tsx              # 社区页
         │   └── submit/
-        │       ├── page.tsx
+        │       ├── page.tsx          # 发帖页
         │       └── SubmitForm.tsx
-        └── post/[id]/page.tsx        # Post detail + comments
+        └── post/[id]/page.tsx        # 帖子详情 + 评论
 ```
 
-## Database model
+## 数据模型
 
 ```
-auth.users (Supabase Auth)
+auth.users (Supabase 认证)
    |
    v
-profiles (1-1)         communities
+profiles (1对1)       communities (社区)
    |                       |
    |                       v
    +------< posts <--------+
    |          |
    |          v
-   +------< comments <--+ (parent_id self-ref)
+   +------< comments <--+ (parent_id 自引用)
    |          |
    v          v
-   votes (target = post OR comment, value in {-1, +1})
+   votes (目标 = 帖子 或 评论, 值 ∈ {-1, +1})
 ```
 
-## Roadmap ideas
+## 后续可做
 
-- Hot / Top sort orders (Reddit's score = log10(score) + age)
-- Markdown rendering for posts and comments
-- Rate limiting via Supabase Edge Functions
-- Image uploads via Supabase Storage
-- Realtime updates (Supabase channels) for new comments
-- Mod tools (pinning, locking, deleting, banning per community)
+- 🔥 热门 / 最佳排序算法（参考 Reddit 评分公式）
+- 📝 Markdown 渲染（帖子和评论）
+- 🖼 接入 Supabase Storage 上传图片
+- ⚡️ Supabase Realtime 实时推送新评论
+- 🛡 版主工具（置顶、锁帖、删帖、封禁）
+- 🌐 GitHub / Google 第三方登录
 
-## License
+## 许可证
 
 MIT
