@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
+import { zhCN } from "date-fns/locale";
 import VoteButtons from "./VoteButtons";
+import DeletePostButton from "./DeletePostButton";
 import type { PostWithScore } from "@/lib/types";
 
 type Props = {
@@ -8,10 +10,18 @@ type Props = {
   /** Vote value of the current user on this post: -1, 0, or 1. */
   userVote?: -1 | 0 | 1;
   isLoggedIn: boolean;
+  /** If provided AND equals post.author_id, show a delete button. */
+  currentUserId?: string | null;
 };
 
-export default function PostCard({ post, userVote = 0, isLoggedIn }: Props) {
+export default function PostCard({
+  post,
+  userVote = 0,
+  isLoggedIn,
+  currentUserId,
+}: Props) {
   const created = new Date(post.created_at);
+  const isOwner = !!currentUserId && currentUserId === post.author_id;
   return (
     <article className="card flex hover:border-gray-400 transition-colors">
       <div className="bg-gray-50 rounded-l-md py-2">
@@ -34,13 +44,20 @@ export default function PostCard({ post, userVote = 0, isLoggedIn }: Props) {
             </Link>
           )}
           <span>·</span>
-          <span>posted by</span>
-          <span className="font-medium">
-            u/{post.author_username ?? "deleted"}
-          </span>
+          <span>由</span>
+          {post.author_username ? (
+            <Link
+              href={`/u/${post.author_username}`}
+              className="font-medium hover:underline"
+            >
+              u/{post.author_username}
+            </Link>
+          ) : (
+            <span className="font-medium">u/已注销</span>
+          )}
           <span>·</span>
           <time dateTime={post.created_at} title={created.toLocaleString()}>
-            {formatDistanceToNow(created, { addSuffix: true })}
+            {formatDistanceToNow(created, { addSuffix: true, locale: zhCN })}
           </time>
         </div>
 
@@ -67,10 +84,11 @@ export default function PostCard({ post, userVote = 0, isLoggedIn }: Props) {
           </p>
         )}
 
-        <div className="mt-2 text-xs text-gray-500">
+        <div className="mt-2 text-xs text-gray-500 flex items-center gap-3">
           <Link href={`/post/${post.id}`} className="hover:underline">
-            {post.comment_count} comment{post.comment_count === 1 ? "" : "s"}
+            {post.comment_count} 条评论
           </Link>
+          {isOwner && <DeletePostButton postId={post.id} />}
         </div>
       </div>
     </article>

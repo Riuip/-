@@ -49,19 +49,16 @@ export default function VoteButtons({
     setUserVote(newValue);
     setScore((s) => s + delta);
 
-    const target = postId
-      ? { post_id: postId, comment_id: null }
-      : { post_id: null, comment_id: commentId! };
-
     if (newValue === 0) {
-      // Remove the vote.
       const q = supabase.from("votes").delete().eq("user_id", user.id);
       const { error } = postId
         ? await q.eq("post_id", postId).is("comment_id", null)
         : await q.eq("comment_id", commentId!).is("post_id", null);
       if (error) console.error(error);
     } else {
-      // Upsert (composite PK = user_id + post_id + comment_id).
+      const target = postId
+        ? { post_id: postId, comment_id: null }
+        : { post_id: null, comment_id: commentId! };
       const { error } = await supabase.from("votes").upsert(
         {
           user_id: user.id,
@@ -79,7 +76,7 @@ export default function VoteButtons({
   return (
     <div className="flex flex-col items-center w-10 select-none">
       <button
-        aria-label="Upvote"
+        aria-label="顶"
         onClick={() => vote(1)}
         className={`p-1 rounded hover:bg-gray-100 ${
           userVote === 1 ? "text-brand" : "text-gray-500"
@@ -101,7 +98,7 @@ export default function VoteButtons({
         {score}
       </span>
       <button
-        aria-label="Downvote"
+        aria-label="踩"
         onClick={() => vote(-1)}
         className={`p-1 rounded hover:bg-gray-100 ${
           userVote === -1 ? "text-blue-500" : "text-gray-500"

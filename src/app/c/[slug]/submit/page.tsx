@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SubmitForm from "./SubmitForm";
 
@@ -19,15 +19,12 @@ export default async function SubmitPage({
     .eq("slug", params.slug)
     .maybeSingle();
 
-  if (!community) {
-    redirect(`/c/${params.slug}`); // visiting /c/[slug] auto-creates it.
-  }
+  if (!community) notFound();
 
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-lg font-semibold mb-3">
-        Create a post in{" "}
-        <span className="text-brand">c/{community.slug}</span>
+        在 <span className="text-brand">c/{community.slug}</span> 发帖
       </h1>
       <SubmitForm communityId={community.id} communitySlug={community.slug} />
     </div>

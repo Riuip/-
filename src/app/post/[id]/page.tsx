@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
+import { zhCN } from "date-fns/locale";
 import { createClient } from "@/lib/supabase/server";
 import VoteButtons from "@/components/VoteButtons";
 import CommentThread from "@/components/CommentThread";
 import CommentForm from "@/components/CommentForm";
+import DeletePostButton from "@/components/DeletePostButton";
+import Markdown from "@/components/Markdown";
+import { renderMarkdown } from "@/lib/markdown";
 import type { PostWithScore, CommentWithScore } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -33,6 +37,12 @@ export default async function PostPage({
     .order("created_at", { ascending: true });
   const comments = (rawComments ?? []) as CommentWithScore[];
 
+  // Pre-render comment markdown server-side (sanitized).
+  const renderedBodies: Record<string, string> = {};
+  for (const c of comments) {
+    renderedBodies[c.id] = renderMarkdown(c.body);
+  }
+
   // User vote map for the post + each comment.
   let postUserVote: -1 | 0 | 1 = 0;
   const commentUserVotes: Record<string, -1 | 1> = {};
@@ -60,6 +70,7 @@ export default async function PostPage({
   }
 
   const created = new Date(post.created_at);
+  const isOwner = !!user && user.id === post.author_id;
 
   return (
     <div className="space-y-4">
@@ -83,13 +94,20 @@ export default async function PostPage({
               </Link>
             )}
             <span>·</span>
-            <span>posted by</span>
-            <span className="font-medium">
-              u/{post.author_username ?? "deleted"}
-            </span>
+            <span>由</span>
+            {post.author_username ? (
+              <Link
+                href={`/u/${post.author_username}`}
+                className="font-medium hover:underline"
+              >
+                u/{post.author_username}
+              </Link>
+            ) : (
+              <span className="font-medium">u/已注销</span>
+            )}
             <span>·</span>
             <time dateTime={post.created_at} title={created.toLocaleString()}>
-              {formatDistanceToNow(created, { addSuffix: true })}
+              {formatDistanceToNow(created, { addSuffix: true, locale: zhCN })}
             </time>
           </div>
 
@@ -107,16 +125,27 @@ export default async function PostPage({
           )}
 
           {post.body && (
-            <p className="mt-3 text-sm text-gray-800 whitespace-pre-wrap">
-              {post.body}
-            </p>
+            <div className="mt-3">
+              <Markdown source={post.body} />
+            </div>
+          )}
+
+          {isOwner && (
+            <div className="mt-3 text-xs">
+              <DeletePostButton
+                postId={post.id}
+                redirectTo={
+                  post.community_slug ? `/c/${post.community_slug}` : "/"
+                }
+              />
+            </div>
           )}
         </div>
       </article>
 
       <section className="card p-4">
         <h2 className="text-sm font-semibold mb-3">
-          {post.comment_count} comment{post.comment_count === 1 ? "" : "s"}
+          {post.comment_count} 条评论
         </h2>
 
         {user ? (
@@ -124,9 +153,9 @@ export default async function PostPage({
         ) : (
           <p className="text-sm text-gray-600 mb-4">
             <Link href="/login" className="text-brand hover:underline">
-              Sign in
+              登录
             </Link>{" "}
-            to leave a comment.
+            后即可评论。
           </p>
         )}
 
@@ -135,6 +164,8 @@ export default async function PostPage({
           userVotes={commentUserVotes}
           isLoggedIn={!!user}
           postId={post.id}
+          currentUserId={user?.id}
+          renderedBodies={renderedBodies}
         />
       </section>
     </div>

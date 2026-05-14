@@ -18,7 +18,7 @@ export default function SignOutButton() {
       onClick={handleSignOut}
       className="text-gray-600 hover:text-gray-900 text-sm"
     >
-      Sign out
+      退出
     </button>
   );
 }

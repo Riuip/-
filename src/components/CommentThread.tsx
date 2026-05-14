@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
+import { zhCN } from "date-fns/locale";
 import VoteButtons from "./VoteButtons";
 import CommentForm from "./CommentForm";
+import DeleteCommentButton from "./DeleteCommentButton";
 import type { CommentWithScore } from "@/lib/types";
 
 type Props = {
@@ -11,6 +14,9 @@ type Props = {
   userVotes: Record<string, -1 | 1>;
   isLoggedIn: boolean;
   postId: string;
+  currentUserId?: string | null;
+  /** Pre-rendered HTML for each comment body (server-side sanitized markdown). */
+  renderedBodies: Record<string, string>;
 };
 
 type Node = CommentWithScore & { children: Node[] };
@@ -34,11 +40,13 @@ export default function CommentThread({
   userVotes,
   isLoggedIn,
   postId,
+  currentUserId,
+  renderedBodies,
 }: Props) {
   const tree = useMemo(() => buildTree(comments), [comments]);
 
   if (comments.length === 0) {
-    return <p className="text-sm text-gray-500">No comments yet.</p>;
+    return <p className="text-sm text-gray-500">还没有人评论。</p>;
   }
 
   return (
@@ -50,6 +58,8 @@ export default function CommentThread({
           userVotes={userVotes}
           isLoggedIn={isLoggedIn}
           postId={postId}
+          currentUserId={currentUserId}
+          renderedBodies={renderedBodies}
         />
       ))}
     </ul>
@@ -61,14 +71,20 @@ function CommentNode({
   userVotes,
   isLoggedIn,
   postId,
+  currentUserId,
+  renderedBodies,
 }: {
   node: Node;
   userVotes: Record<string, -1 | 1>;
   isLoggedIn: boolean;
   postId: string;
+  currentUserId?: string | null;
+  renderedBodies: Record<string, string>;
 }) {
   const [replying, setReplying] = useState(false);
   const created = new Date(node.created_at);
+  const isOwner = !!currentUserId && currentUserId === node.author_id;
+  const html = renderedBodies[node.id] ?? "";
 
   return (
     <li className="border-l-2 border-gray-200 pl-3">
@@ -81,26 +97,39 @@ function CommentNode({
         />
         <div className="flex-1 min-w-0">
           <div className="text-xs text-gray-500 mb-1">
-            <span className="font-medium text-gray-700">
-              u/{node.author_username ?? "deleted"}
-            </span>{" "}
-            ·{" "}
+            {node.author_username ? (
+              <Link
+                href={`/u/${node.author_username}`}
+                className="font-medium text-gray-700 hover:underline"
+              >
+                u/{node.author_username}
+              </Link>
+            ) : (
+              <span className="font-medium text-gray-700">u/已注销</span>
+            )}
+            {" · "}
             <time dateTime={node.created_at} title={created.toLocaleString()}>
-              {formatDistanceToNow(created, { addSuffix: true })}
+              {formatDistanceToNow(created, { addSuffix: true, locale: zhCN })}
             </time>
           </div>
-          <p className="text-sm text-gray-800 whitespace-pre-wrap">
-            {node.body}
-          </p>
 
-          {isLoggedIn && (
-            <button
-              onClick={() => setReplying((v) => !v)}
-              className="text-xs text-gray-500 hover:text-gray-800 mt-1"
-            >
-              {replying ? "Cancel" : "Reply"}
-            </button>
-          )}
+          <div
+            className="prose-forum text-sm text-gray-800"
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
+
+          <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
+            {isLoggedIn && (
+              <button
+                onClick={() => setReplying((v) => !v)}
+                className="hover:text-gray-800"
+              >
+                {replying ? "取消" : "回复"}
+              </button>
+            )}
+            {isOwner && <DeleteCommentButton commentId={node.id} />}
+          </div>
 
           {replying && (
             <div className="mt-2">
@@ -122,6 +151,8 @@ function CommentNode({
                   userVotes={userVotes}
                   isLoggedIn={isLoggedIn}
                   postId={postId}
+                  currentUserId={currentUserId}
+                  renderedBodies={renderedBodies}
                 />
               ))}
             </ul>

@@ -18,6 +18,11 @@ export type Community = {
   created_at: string;
 };
 
+export type CommunityWithStats = Community & {
+  member_count: number;
+  post_count: number;
+};
+
 export type Post = {
   id: string;
   community_id: string;
@@ -60,3 +65,6 @@ export type CommentWithScore = Comment & {
   author_avatar_url: string | null;
   score: number;
 };
+
+export type SortMode = "new" | "hot" | "top";
+export type FeedMode = "all" | "joined";

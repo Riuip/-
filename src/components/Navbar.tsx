@@ -25,20 +25,39 @@ export default async function Navbar() {
           href="/"
           className="text-brand font-bold text-lg tracking-tight"
         >
-          forum
+          论坛
         </Link>
 
         <nav className="flex-1 flex items-center gap-4 text-sm">
-          <Link href="/" className="hover:underline">
-            Home
+          <Link href="/" className="text-gray-700 hover:text-gray-900">
+            首页
           </Link>
+          <Link
+            href="/c"
+            className="text-gray-700 hover:text-gray-900"
+          >
+            社区
+          </Link>
+          {user && (
+            <Link
+              href="/c/new"
+              className="text-gray-700 hover:text-gray-900"
+            >
+              创建社区
+            </Link>
+          )}
         </nav>
 
         {user ? (
           <div className="flex items-center gap-3 text-sm">
-            <span className="text-gray-700">
-              u/<span className="font-medium">{username ?? "user"}</span>
-            </span>
+            {username && (
+              <Link
+                href={`/u/${username}`}
+                className="text-gray-700 hover:underline"
+              >
+                u/<span className="font-medium">{username}</span>
+              </Link>
+            )}
             <SignOutButton />
           </div>
         ) : (
@@ -46,7 +65,7 @@ export default async function Navbar() {
             href="/login"
             className="bg-brand hover:bg-brand-dark text-white text-sm font-medium px-3 py-1.5 rounded-full"
           >
-            Log In
+            登录
           </Link>
         )}
       </div>

@@ -3,8 +3,8 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
-  title: "Forum",
-  description: "A Reddit-style community forum built with Next.js + Supabase.",
+  title: "论坛 · Forum",
+  description: "一个 Reddit 风格的中文社区论坛,基于 Next.js + Supabase 构建。",
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="zh-CN">
       <body className="min-h-screen">
         <Navbar />
         <main className="max-w-5xl mx-auto px-4 py-6">{children}</main>

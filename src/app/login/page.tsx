@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 type Mode = "sign-in" | "sign-up";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const params = useSearchParams();
+  const next = params.get("next") || "/";
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,15 +32,13 @@ export default function LoginPage() {
         password,
         options: {
           data: { username: username.trim() || undefined },
-          emailRedirectTo: `${location.origin}/auth/callback`,
+          emailRedirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
         },
       });
       if (error) {
-        setError(error.message);
+        setError(translateAuthError(error.message));
       } else {
-        setInfo(
-          "Check your email for a confirmation link. After confirming, sign in below.",
-        );
+        setInfo("注册成功!请去邮箱点击确认链接,然后回这里登录。");
         setMode("sign-in");
       }
     } else {
@@ -47,10 +47,10 @@ export default function LoginPage() {
         password,
       });
       if (error) {
-        setError(error.message);
+        setError(translateAuthError(error.message));
       } else {
         router.refresh();
-        router.push("/");
+        router.push(next);
       }
     }
 
@@ -60,14 +60,14 @@ export default function LoginPage() {
   return (
     <div className="max-w-sm mx-auto card p-6 mt-8">
       <h1 className="text-xl font-semibold mb-4">
-        {mode === "sign-in" ? "Sign in" : "Create an account"}
+        {mode === "sign-in" ? "登录" : "创建账号"}
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-3">
         {mode === "sign-up" && (
           <input
             type="text"
-            placeholder="Username (3-24 chars, a-z 0-9 _)"
+            placeholder="用户名(3-24 位,小写字母/数字/下划线)"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             pattern="[a-z0-9_]{3,24}"
@@ -77,7 +77,7 @@ export default function LoginPage() {
         )}
         <input
           type="email"
-          placeholder="you@example.com"
+          placeholder="邮箱地址"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -85,7 +85,7 @@ export default function LoginPage() {
         />
         <input
           type="password"
-          placeholder="Password (min. 6 chars)"
+          placeholder="密码(至少 6 位)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           minLength={6}
@@ -101,11 +101,7 @@ export default function LoginPage() {
           disabled={loading}
           className="w-full bg-brand hover:bg-brand-dark disabled:opacity-60 text-white font-medium rounded-full py-2 text-sm"
         >
-          {loading
-            ? "..."
-            : mode === "sign-in"
-              ? "Sign in"
-              : "Create account"}
+          {loading ? "处理中..." : mode === "sign-in" ? "登录" : "注册"}
         </button>
       </form>
 
@@ -117,10 +113,26 @@ export default function LoginPage() {
         }}
         className="mt-4 text-sm text-gray-600 hover:underline"
       >
-        {mode === "sign-in"
-          ? "Don't have an account? Sign up"
-          : "Already have an account? Sign in"}
+        {mode === "sign-in" ? "还没有账号?去注册" : "已有账号?去登录"}
       </button>
     </div>
+  );
+}
+
+function translateAuthError(msg: string): string {
+  const m = msg.toLowerCase();
+  if (m.includes("invalid login credentials")) return "邮箱或密码错误";
+  if (m.includes("email not confirmed")) return "邮箱还未验证,请检查你的收件箱";
+  if (m.includes("user already registered")) return "该邮箱已注册";
+  if (m.includes("password should be at least")) return "密码长度至少 6 位";
+  if (m.includes("rate limit")) return "操作太频繁,请稍后再试";
+  return msg;
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -58,7 +58,11 @@ export default function CommentForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-2 mb-3">
       <textarea
-        placeholder={parentId ? "Write a reply..." : "Write a comment..."}
+        placeholder={
+          parentId
+            ? "写下你的回复... (支持 Markdown)"
+            : "写下你的评论... (支持 Markdown)"
+        }
         value={body}
         onChange={(e) => setBody(e.target.value)}
         rows={3}
@@ -73,7 +77,7 @@ export default function CommentForm({
             onClick={onDone}
             className="text-xs text-gray-600 hover:text-gray-900 px-3 py-1"
           >
-            Cancel
+            取消
           </button>
         )}
         <button
@@ -81,7 +85,7 @@ export default function CommentForm({
           disabled={loading || !body.trim()}
           className="bg-brand hover:bg-brand-dark disabled:opacity-60 text-white text-xs font-medium px-3 py-1.5 rounded-full"
         >
-          {loading ? "..." : parentId ? "Reply" : "Comment"}
+          {loading ? "发送中..." : parentId ? "回复" : "评论"}
         </button>
       </div>
     </form>
