@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import HotNewsBanner from "@/components/HotNewsBanner";
 import { LeftDecorPanel, RightDecorPanel } from "@/components/decor/SidePanels";
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className="min-h-screen">
+        <HotNewsBanner />
         <Navbar />
         <LeftDecorPanel />
         <RightDecorPanel />
