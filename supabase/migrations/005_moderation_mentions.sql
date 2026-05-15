@@ -38,7 +38,11 @@ create policy "community creators can moderate posts"
     )
   );
 
+-- Drop every historical name for the delete policy before recreating
+-- so this migration is safe to re-run.
 drop policy if exists "community creators can delete posts" on public.posts;
+drop policy if exists "community creators can delete any post in their community" on public.posts;
+drop policy if exists "authors can delete their posts" on public.posts;
 create policy "community creators can delete any post in their community"
   on public.posts for delete
   using (

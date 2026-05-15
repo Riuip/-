@@ -95,6 +95,7 @@ $$;
 -- Update the moderation policies on posts/comments to also accept any
 -- moderator (not just the creator).
 drop policy if exists "community creators can moderate posts" on public.posts;
+drop policy if exists "mods can moderate posts" on public.posts;
 create policy "mods can moderate posts"
   on public.posts for update
   using (
@@ -102,8 +103,8 @@ create policy "mods can moderate posts"
     or public.is_community_mod(community_id)
   );
 
-drop policy if exists "community creators can delete any post in their community"
-  on public.posts;
+drop policy if exists "community creators can delete any post in their community" on public.posts;
+drop policy if exists "authors or mods can delete posts" on public.posts;
 create policy "authors or mods can delete posts"
   on public.posts for delete
   using (
