@@ -29,6 +29,26 @@ const config: Config = {
           "dark-secondary": "#161b22",
           "dark-border": "#30363d",
         },
+        // Backwards-compat aliases mapped to the new GitHub-luxury palette,
+        // so that legacy class names like text-brand / bg-paper-dark / text-ink-soft
+        // still produce something sensible during the gradual migration.
+        brand: {
+          DEFAULT: "#c9a227",
+          dark: "#856a1a",
+        },
+        ink: {
+          DEFAULT: "#1f2328",
+          soft: "#424a53",
+          mute: "#6e7781",
+        },
+        paper: {
+          DEFAULT: "#f6f8fa",
+          dark: "#d1d9e0",
+        },
+        gold: {
+          DEFAULT: "#c9a227",
+          dark: "#856a1a",
+        },
       },
       fontFamily: {
         sans: [

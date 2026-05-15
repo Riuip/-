@@ -16,6 +16,10 @@ export type Community = {
   description: string | null;
   created_by: string | null;
   created_at: string;
+  icon_url: string | null;
+  banner_url: string | null;
+  rules: string | null;
+  is_private: boolean;
 };
 
 export type CommunityWithStats = Community & {

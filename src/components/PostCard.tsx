@@ -23,7 +23,13 @@ export default function PostCard({
   const isOwner = !!currentUserId && currentUserId === post.author_id;
 
   return (
-    <article className="card hover-lift group">
+    <article
+      className={`card hover-lift group ${
+        post.is_pinned
+          ? "border-accent-300 dark:border-accent-700/50 ring-1 ring-accent-200 dark:ring-accent-900/30"
+          : ""
+      }`}
+    >
       <div className="flex">
         {/* Vote column */}
         <div className="w-12 flex-shrink-0 flex items-start justify-center pt-4 border-r border-surface-border dark:border-surface-dark-border bg-surface-secondary/50 dark:bg-surface-dark-secondary/50 rounded-l-xl">
@@ -37,8 +43,24 @@ export default function PostCard({
 
         {/* Content */}
         <div className="flex-1 p-4 min-w-0">
-          {/* Meta line */}
+          {/* Meta line + badges */}
           <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1.5 flex-wrap">
+            {post.is_pinned && (
+              <span className="badge-gold flex items-center gap-1">
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M4.456.734a1.75 1.75 0 0 1 2.826.504l.613 1.327a3.081 3.081 0 0 0 2.084 1.707l1.408.422a1.75 1.75 0 0 1 .526 3.09l-1.146.86a3.076 3.076 0 0 0-1.158 2.388l-.012 1.485a1.75 1.75 0 0 1-2.89 1.296l-1.044-1.02a3.072 3.072 0 0 0-2.654-.802l-1.474.232a1.75 1.75 0 0 1-1.744-2.572l.6-1.37a3.077 3.077 0 0 0-.04-2.67L.533 5.2a1.75 1.75 0 0 1 1.643-2.59l1.476.088a3.075 3.075 0 0 0 2.384-.97Z" />
+                </svg>
+                置顶
+              </span>
+            )}
+            {post.is_locked && (
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M4 4a4 4 0 0 1 8 0v2h.25c.966 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0 1 12.25 15h-8.5A1.75 1.75 0 0 1 2 13.25v-5.5C2 6.784 2.784 6 3.75 6H4Z" />
+                </svg>
+                已锁定
+              </span>
+            )}
             {post.community_slug && (
               <Link
                 href={`/c/${post.community_slug}`}

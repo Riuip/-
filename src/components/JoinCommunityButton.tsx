@@ -15,6 +15,7 @@ export default function JoinCommunityButton({
 }) {
   const router = useRouter();
   const [joined, setJoined] = useState(initialJoined);
+  const [hover, setHover] = useState(false);
   const [loading, setLoading] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -24,46 +25,63 @@ export default function JoinCommunityButton({
       return;
     }
     setLoading(true);
+    // Optimistic update
+    const prev = joined;
+    setJoined(!joined);
+
     const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
+      setJoined(prev);
+      setLoading(false);
       router.push("/login");
       return;
     }
 
-    if (joined) {
+    if (prev) {
       const { error } = await supabase
         .from("community_members")
         .delete()
         .eq("user_id", user.id)
         .eq("community_id", communityId);
-      if (!error) setJoined(false);
-      else alert("退出失败:" + error.message);
+      if (error) {
+        setJoined(prev);
+        alert("退出失败: " + error.message);
+      }
     } else {
       const { error } = await supabase
         .from("community_members")
         .insert({ user_id: user.id, community_id: communityId });
-      if (!error) setJoined(true);
-      else alert("加入失败:" + error.message);
+      if (error) {
+        setJoined(prev);
+        alert("加入失败: " + error.message);
+      }
     }
 
     setLoading(false);
     startTransition(() => router.refresh());
   }
 
+  // Visual states: not joined -> "加入" gold | joined -> "已加入" outline | joined+hover -> "退出" red
+  const label = !joined ? "加入" : hover ? "退出" : "已加入";
+
   return (
     <button
       onClick={toggle}
       disabled={loading}
-      className={`text-sm font-medium px-4 py-1.5 rounded-full whitespace-nowrap transition-colors ${
-        joined
-          ? "border border-gray-300 text-gray-700 hover:bg-gray-100"
-          : "bg-brand hover:bg-brand-dark text-white"
-      } disabled:opacity-60`}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className={`text-sm font-semibold px-5 py-1.5 rounded-lg whitespace-nowrap transition-all duration-150 disabled:opacity-60 ${
+        !joined
+          ? "bg-accent hover:bg-accent-600 text-white shadow-sm hover:shadow-md"
+          : hover
+            ? "bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-800 text-red-700 dark:text-red-400"
+            : "bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50"
+      }`}
     >
-      {loading ? "..." : joined ? "已加入" : "加入"}
+      {loading ? "..." : label}
     </button>
   );
 }

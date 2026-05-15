@@ -55,24 +55,26 @@ export default function CommentForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2 mb-3">
+    <form onSubmit={handleSubmit} className="space-y-2 mb-4">
       <MarkdownEditor
         value={body}
         onChange={setBody}
         placeholder={
           parentId
-            ? "写下你的回复...(支持 Markdown 与图片)"
-            : "写下你的评论...(支持 Markdown 与图片)"
+            ? "写下你的回复... (支持 Markdown、@提及和图片)"
+            : "写下你的评论... (支持 Markdown、@提及和图片)"
         }
         rows={4}
       />
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && (
+        <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+      )}
       <div className="flex justify-end gap-2">
         {onDone && (
           <button
             type="button"
             onClick={onDone}
-            className="text-xs text-gray-600 hover:text-gray-900 px-3 py-1"
+            className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-1.5"
           >
             取消
           </button>
@@ -80,9 +82,9 @@ export default function CommentForm({
         <button
           type="submit"
           disabled={loading || !body.trim()}
-          className="bg-brand hover:bg-brand-dark disabled:opacity-60 text-white text-xs font-medium px-3 py-1.5 rounded-full"
+          className="btn-primary text-xs px-4 py-1.5 disabled:opacity-50"
         >
-          {loading ? "发送中..." : parentId ? "回复" : "评论"}
+          {loading ? "发送中..." : parentId ? "回复" : "发表评论"}
         </button>
       </div>
     </form>

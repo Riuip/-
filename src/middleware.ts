@@ -7,7 +7,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Match all request paths except static assets and image optimisation.
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Match request paths except: static assets, image optimisation,
+    // favicons, and common image extensions. Auth endpoint paths still
+    // need session refresh so we keep them in.
+    "/((?!_next/static|_next/image|_next/data|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };
