@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-import HotNewsBanner from "@/components/HotNewsBanner";
-import { LeftDecorPanel, RightDecorPanel } from "@/components/decor/SidePanels";
 
 export const metadata: Metadata = {
   title: {
-    default: "论坛 · 以文会友",
-    template: "%s · 论坛",
+    default: "Forum",
+    template: "%s · Forum",
   },
   description:
-    "一个具有中华文化感的开源中文论坛,支持发帖、评论、投票、Markdown、图片上传、实时更新。基于 Next.js + Supabase。",
+    "A premium community forum with GitHub-inspired design. Built with Next.js + Supabase.",
   openGraph: {
     type: "website",
-    siteName: "论坛",
+    siteName: "Forum",
   },
 };
 
@@ -23,13 +21,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN">
-      <body className="min-h-screen">
-        <HotNewsBanner />
+    <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        {/* Dark mode: read from localStorage before paint to avoid flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var d=document.documentElement;var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){d.classList.add('dark')}else{d.classList.remove('dark')}}catch(e){}})()`,
+          }}
+        />
+      </head>
+      <body className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
         <Navbar />
-        <LeftDecorPanel />
-        <RightDecorPanel />
-        <main className="max-w-5xl mx-auto px-4 py-6">{children}</main>
+        <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">{children}</main>
       </body>
     </html>
   );

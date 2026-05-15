@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { SortMode } from "@/lib/types";
 
-const TABS: { key: SortMode; label: string; icon: string }[] = [
-  { key: "new", label: "最新", icon: "新" },
-  { key: "hot", label: "热门", icon: "热" },
-  { key: "top", label: "最高", icon: "顶" },
+const TABS: { key: SortMode; label: string }[] = [
+  { key: "new", label: "最新" },
+  { key: "hot", label: "热门" },
+  { key: "top", label: "最高" },
 ];
 
 export default function SortTabs({
@@ -14,11 +14,10 @@ export default function SortTabs({
 }: {
   current: SortMode;
   basePath: string;
-  /** Extra query keys to preserve, e.g. { feed: "joined" }. */
   extraQuery?: Record<string, string>;
 }) {
   return (
-    <div className="card px-2 py-1.5 flex items-center gap-1 text-sm">
+    <div className="card px-1 py-1 flex items-center gap-0.5 text-sm">
       {TABS.map((t) => {
         const params = new URLSearchParams({ ...(extraQuery ?? {}) });
         if (t.key !== "new") params.set("sort", t.key);
@@ -29,19 +28,12 @@ export default function SortTabs({
           <Link
             key={t.key}
             href={href}
-            className={`flex items-center gap-1 px-3 py-1 rounded-full transition-colors ${
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
               active
-                ? "bg-brand text-white"
-                : "text-ink-soft hover:bg-paper-dark"
+                ? "bg-accent text-white shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
           >
-            <span
-              className={`text-[10px] font-bold ${
-                active ? "" : "text-brand"
-              }`}
-            >
-              {t.icon}
-            </span>
             {t.label}
           </Link>
         );

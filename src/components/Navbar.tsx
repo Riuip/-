@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "./SignOutButton";
 import SearchBar from "./SearchBar";
-import Seal from "./decor/Seal";
+import DarkModeToggle from "./DarkModeToggle";
 
 export default async function Navbar() {
   const supabase = createClient();
@@ -31,103 +32,98 @@ export default async function Navbar() {
   }
 
   return (
-    <header className="bg-white/85 backdrop-blur border-b border-paper-dark sticky top-0 z-20">
-      <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+    <header className="sticky top-0 z-30 bg-gray-900 dark:bg-black border-b border-gray-800 dark:border-gray-700/50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3 sm:gap-5">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <Seal size={32} text="论坛" />
-          <span className="font-serif text-lg font-semibold tracking-wide hidden sm:inline">
-            论坛
+        <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+          {/* Gold diamond icon */}
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center shadow-sm group-hover:shadow-accent-500/30 transition-shadow">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="white">
+              <path d="M8 1L14.5 8L8 15L1.5 8L8 1Z" />
+            </svg>
+          </div>
+          <span className="text-white font-semibold text-lg tracking-tight hidden sm:inline">
+            Forum
           </span>
         </Link>
 
-        {/* Primary nav */}
-        <nav className="flex items-center gap-3 text-sm shrink-0">
-          <Link href="/" className="text-ink-soft hover:text-brand">
+        {/* Nav links */}
+        <nav className="hidden md:flex items-center gap-1 text-sm">
+          <Link href="/" className="btn-ghost text-gray-300 hover:text-white">
             首页
           </Link>
-          <Link href="/c" className="text-ink-soft hover:text-brand">
+          <Link href="/c" className="btn-ghost text-gray-300 hover:text-white">
             社区
           </Link>
           {user && (
-            <Link
-              href="/c/new"
-              className="text-ink-soft hover:text-brand hidden md:inline"
-            >
-              创建社区
+            <Link href="/c/new" className="btn-ghost text-gray-300 hover:text-white">
+              创建
             </Link>
           )}
         </nav>
 
         {/* Search */}
-        <div className="flex-1 max-w-md mx-auto">
-          <SearchBar />
+        <div className="flex-1 max-w-lg mx-auto">
+          <Suspense fallback={null}>
+            <SearchBar />
+          </Suspense>
         </div>
 
-        {user ? (
-          <div className="flex items-center gap-3 text-sm shrink-0">
-            <Link
-              href="/notifications"
-              aria-label="通知"
-              className="relative text-ink-mute hover:text-brand p-1"
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-brand text-white text-[10px] font-semibold flex items-center justify-center">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              )}
-            </Link>
-            {username && (
+        {/* Right side */}
+        <div className="flex items-center gap-2 shrink-0">
+          <DarkModeToggle />
+
+          {user ? (
+            <>
+              {/* Notifications */}
               <Link
-                href={`/u/${username}`}
-                className="flex items-center gap-1.5 text-ink-soft hover:text-brand"
+                href="/notifications"
+                aria-label="通知"
+                className="relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 rounded-full bg-accent text-white text-[10px] font-bold flex items-center justify-center">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* User menu */}
+              <Link
+                href={username ? `/u/${username}` : "/settings"}
+                className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
               >
                 {avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={avatarUrl}
-                    alt=""
-                    className="w-7 h-7 rounded-full object-cover border border-paper-dark"
-                  />
+                  <img src={avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover ring-2 ring-gray-700" />
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-paper-dark flex items-center justify-center text-xs font-medium text-ink-mute">
-                    {username.charAt(0).toUpperCase()}
+                  <div className="w-7 h-7 rounded-full bg-gray-700 ring-2 ring-gray-600 flex items-center justify-center text-xs font-medium text-gray-300">
+                    {(username ?? "U").charAt(0).toUpperCase()}
                   </div>
                 )}
-                <span className="hidden sm:inline">
-                  u/<span className="font-medium">{username}</span>
+                <span className="text-sm text-gray-300 font-medium hidden lg:inline max-w-[100px] truncate">
+                  {username ?? "用户"}
                 </span>
               </Link>
-            )}
-            <Link
-              href="/settings"
-              className="text-ink-mute hover:text-brand hidden sm:inline"
-            >
-              设置
+
+              {/* Settings + Sign out */}
+              <Link href="/settings" className="hidden sm:flex p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path fillRule="evenodd" d="M8 2a.75.75 0 0 1 .75.75V3.5a4.504 4.504 0 0 1 3.25 3.25H13.25a.75.75 0 0 1 0 1.5H12a4.504 4.504 0 0 1-3.25 3.25v1.25a.75.75 0 0 1-1.5 0V11.5A4.504 4.504 0 0 1 4 8.25H2.75a.75.75 0 0 1 0-1.5H4A4.504 4.504 0 0 1 7.25 3.5V2.75A.75.75 0 0 1 8 2Zm-2.5 6a2.5 2.5 0 1 1 5 0 2.5 2.5 0 0 1-5 0Z" />
+                </svg>
+              </Link>
+              <SignOutButton />
+            </>
+          ) : (
+            <Link href="/login" className="btn-primary text-sm">
+              登录
             </Link>
-            <SignOutButton />
-          </div>
-        ) : (
-          <Link
-            href="/login"
-            className="bg-brand hover:bg-brand-dark text-white text-sm font-medium px-4 py-1.5 rounded-full shrink-0"
-          >
-            登录
-          </Link>
-        )}
+          )}
+        </div>
       </div>
     </header>
   );

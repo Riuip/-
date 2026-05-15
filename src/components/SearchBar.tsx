@@ -14,7 +14,6 @@ export default function SearchBar({
   const params = useSearchParams();
   const [q, setQ] = useState(params.get("q") ?? "");
 
-  // Sync when navigating across pages with different ?q
   useEffect(() => {
     setQ(params.get("q") ?? "");
   }, [params]);
@@ -27,28 +26,22 @@ export default function SearchBar({
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className={`relative flex items-center ${className}`}
-    >
+    <form onSubmit={handleSubmit} className={`relative flex items-center ${className}`}>
       <svg
         width="14"
         height="14"
-        viewBox="0 0 20 20"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        className="absolute left-2.5 text-ink-mute pointer-events-none"
+        viewBox="0 0 16 16"
+        fill="currentColor"
+        className="absolute left-3 text-gray-500 pointer-events-none"
       >
-        <circle cx="9" cy="9" r="6" />
-        <line x1="14" y1="14" x2="18" y2="18" strokeLinecap="round" />
+        <path fillRule="evenodd" d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z" />
       </svg>
       <input
         type="text"
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-paper-dark/60 hover:bg-paper-dark focus:bg-white focus:border-brand border border-paper-dark rounded-full pl-8 pr-3 py-1.5 text-sm outline-none transition-colors"
+        className="w-full bg-gray-800 dark:bg-gray-800/80 hover:bg-gray-700 focus:bg-gray-700 border border-gray-700 focus:border-accent-500 rounded-lg pl-9 pr-3 py-2 text-sm text-gray-200 placeholder-gray-500 outline-none transition-all focus:ring-1 focus:ring-accent-500/50"
       />
     </form>
   );

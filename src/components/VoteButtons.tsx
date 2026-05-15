@@ -5,11 +5,9 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 type Props = {
-  /** Either postId or commentId must be provided. */
   postId?: string;
   commentId?: string;
   initialScore: number;
-  /** Current user's existing vote value, or 0 if none/not logged in. */
   initialUserVote?: -1 | 0 | 1;
   isLoggedIn: boolean;
 };
@@ -41,11 +39,9 @@ export default function VoteButtons({
       return;
     }
 
-    // Toggle off if clicking the same direction.
     const newValue: -1 | 0 | 1 = userVote === next ? 0 : next;
     const delta = newValue - userVote;
 
-    // Optimistic UI.
     setUserVote(newValue);
     setScore((s) => s + delta);
 
@@ -74,25 +70,27 @@ export default function VoteButtons({
   }
 
   return (
-    <div className="flex flex-col items-center w-10 select-none">
+    <div className="flex flex-col items-center gap-0.5 select-none">
       <button
         aria-label="顶"
         onClick={() => vote(1)}
-        className={`p-1 rounded hover:bg-gray-100 ${
-          userVote === 1 ? "text-brand" : "text-gray-500"
+        className={`p-1 rounded-md transition-colors ${
+          userVote === 1
+            ? "text-accent bg-accent-100/50 dark:bg-accent-900/30"
+            : "text-gray-400 dark:text-gray-500 hover:text-accent hover:bg-gray-100 dark:hover:bg-gray-700"
         }`}
       >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M10 4l6 7H4l6-7z" />
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M4 10l4-6 4 6H4Z" />
         </svg>
       </button>
       <span
-        className={`text-xs font-semibold ${
+        className={`text-xs font-bold tabular-nums ${
           userVote === 1
-            ? "text-brand"
+            ? "text-accent"
             : userVote === -1
               ? "text-blue-500"
-              : "text-gray-700"
+              : "text-gray-700 dark:text-gray-300"
         }`}
       >
         {score}
@@ -100,12 +98,14 @@ export default function VoteButtons({
       <button
         aria-label="踩"
         onClick={() => vote(-1)}
-        className={`p-1 rounded hover:bg-gray-100 ${
-          userVote === -1 ? "text-blue-500" : "text-gray-500"
+        className={`p-1 rounded-md transition-colors ${
+          userVote === -1
+            ? "text-blue-500 bg-blue-50 dark:bg-blue-900/30"
+            : "text-gray-400 dark:text-gray-500 hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-700"
         }`}
       >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M10 16l-6-7h12l-6 7z" />
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M12 6L8 12 4 6h8Z" />
         </svg>
       </button>
     </div>
