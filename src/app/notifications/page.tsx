@@ -54,7 +54,11 @@ function NotificationItem({ n }: { n: NotificationView }) {
   const created = new Date(n.created_at);
   const actor = n.actor_username ?? "已注销用户";
   const verb =
-    n.kind === "reply_post" ? "回复了你的帖子" : "回复了你的评论";
+    n.kind === "reply_post"
+      ? "回复了你的帖子"
+      : n.kind === "mention"
+        ? "在评论中提及了你"
+        : "回复了你的评论";
   const href = n.post_id ? `/post/${n.post_id}` : "/";
 
   // Snippet of comment body (strip markdown a bit, limit length)

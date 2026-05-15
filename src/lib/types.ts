@@ -30,6 +30,8 @@ export type Post = {
   title: string;
   body: string | null;
   url: string | null;
+  is_pinned: boolean;
+  is_locked: boolean;
   created_at: string;
   updated_at: string | null;
 };
@@ -71,7 +73,7 @@ export type CommentWithScore = Comment & {
 export type SortMode = "new" | "hot" | "top";
 export type FeedMode = "all" | "joined";
 
-export type NotificationKind = "reply_post" | "reply_comment";
+export type NotificationKind = "reply_post" | "reply_comment" | "mention";
 
 export type NotificationView = {
   id: string;
